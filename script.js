@@ -23,27 +23,67 @@ function initDownload() {
         }
         
         // Создаем файл для скачивания
-        // Можно использовать любой контент - текст, изображение и т.д.
         const fileContent = 'Monster File Content\n\nЭто файл Monster.';
-        const blob = new Blob([fileContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
         
-        // Создаем ссылку для скачивания
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'monster.txt'; // Имя файла
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Проверяем, поддерживается ли download атрибут
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
-        // Освобождаем память
-        URL.revokeObjectURL(url);
-        
-        showNotification('Файл успешно скачан!', 'success');
+        if (isMobile) {
+            // Для мобильных устройств используем другой подход
+            // Открываем файл в новой вкладке или показываем содержимое
+            const url = URL.createObjectURL(blob);
+            const newWindow = window.open(url, '_blank');
+            
+            if (!newWindow) {
+                // Если не удалось открыть, показываем содержимое
+                const textArea = document.createElement('textarea');
+                textArea.value = fileContent;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    showNotification('Содержимое файла скопировано в буфер обмена!', 'success');
+                } catch (err) {
+                    // Показываем содержимое в alert
+                    alert('Содержимое файла:\n\n' + fileContent + '\n\nСкопируйте это содержимое.');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
+        } else {
+            // Для десктопа используем стандартный способ
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'monster.txt';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 100);
+            
+            showNotification('Файл успешно скачан!', 'success');
+        }
     };
     
     if (downloadBtn) {
         downloadBtn.addEventListener('click', handleDownload);
+        // Также добавляем touch событие для мобильных
+        downloadBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleDownload();
+        });
     }
 }
 

@@ -2,6 +2,34 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Адаптивный размер canvas для мобильных
+function resizeCanvas() {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        const maxWidth = Math.min(window.innerWidth - 40, 400); // Отступы, но не больше 400px
+        const aspectRatio = 400 / 600; // Соотношение сторон
+        canvas.width = maxWidth;
+        canvas.height = maxWidth / aspectRatio;
+    } else {
+        canvas.width = 400;
+        canvas.height = 600;
+    }
+    
+    // Обновляем размеры демона и позицию
+    demon.width = canvas.width * 0.1;
+    demon.height = canvas.width * 0.1;
+    demon.x = canvas.width * 0.15;
+    demon.y = canvas.height / 2;
+    
+    // Обновляем размеры труб
+    pipeWidth = canvas.width * 0.15;
+    pipeGap = canvas.height * 0.33;
+}
+
+// Инициализация размера
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
 // Игровые переменные
 let gameState = 'start'; // 'start', 'playing', 'gameover'
 let score = 0;
@@ -10,10 +38,10 @@ let frames = 0;
 
 // Демон
 const demon = {
-    x: 50,
+    x: canvas.width * 0.15, // 15% от ширины
     y: canvas.height / 2,
-    width: 40,
-    height: 40,
+    width: canvas.width * 0.1, // 10% от ширины
+    height: canvas.width * 0.1,
     velocity: 0,
     gravity: 0.5,
     jumpPower: -8,
@@ -22,20 +50,41 @@ const demon = {
 
 // Трубы
 const pipes = [];
-const pipeWidth = 60;
-const pipeGap = 200;
+let pipeWidth = canvas.width * 0.15; // 15% от ширины
+let pipeGap = canvas.height * 0.33; // 33% от высоты
 const pipeSpeed = 3;
 
 // Инициализация
 function init() {
     document.getElementById('bestScoreDisplay').textContent = bestScore;
+    
+    // События для десктопа
     canvas.addEventListener('click', handleClick);
     document.addEventListener('keydown', handleKeyPress);
+    
+    // События для мобильных
+    canvas.addEventListener('touchstart', handleTouch, { passive: false });
+    canvas.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
+    
+    // Предотвращаем скролл при касании canvas
+    canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    
     gameLoop();
 }
 
 // Обработка клика
-function handleClick() {
+function handleClick(e) {
+    e.preventDefault();
+    if (gameState === 'start' || gameState === 'gameover') {
+        startGame();
+    } else if (gameState === 'playing') {
+        jump();
+    }
+}
+
+// Обработка касания (для мобильных)
+function handleTouch(e) {
+    e.preventDefault();
     if (gameState === 'start' || gameState === 'gameover') {
         startGame();
     } else if (gameState === 'playing') {
@@ -64,6 +113,9 @@ function startGame() {
     demon.y = canvas.height / 2;
     demon.velocity = 0;
     demon.rotation = 0;
+    demon.width = canvas.width * 0.1;
+    demon.height = canvas.width * 0.1;
+    demon.x = canvas.width * 0.15;
     document.getElementById('gameOverScreen').classList.remove('show');
     document.getElementById('currentScore').textContent = score;
 }
@@ -76,7 +128,7 @@ function jump() {
 
 // Создать трубу
 function createPipe() {
-    const minHeight = 50;
+    const minHeight = canvas.height * 0.1;
     const maxHeight = canvas.height - pipeGap - minHeight;
     const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
     

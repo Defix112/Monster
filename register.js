@@ -63,11 +63,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
 
+    // Ограничение ввода: только английские буквы и цифры, без пробелов
+    usernameInput.addEventListener('input', (e) => {
+        // Удаляем все символы, кроме английских букв и цифр
+        const value = e.target.value.replace(/[^A-Za-z0-9]/g, '');
+        if (value !== e.target.value) {
+            e.target.value = value;
+        }
+    });
+
+    // Предотвращаем вставку недопустимых символов
+    usernameInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const cleaned = paste.replace(/[^A-Za-z0-9]/g, '');
+        const currentValue = usernameInput.value;
+        const start = usernameInput.selectionStart;
+        const end = usernameInput.selectionEnd;
+        usernameInput.value = currentValue.substring(0, start) + cleaned + currentValue.substring(end);
+        usernameInput.setSelectionRange(start + cleaned.length, start + cleaned.length);
+    });
+
     // Проверка доступности никнейма в реальном времени
     usernameInput.addEventListener('blur', () => {
         const username = usernameInput.value.trim();
         if (username.length >= 3) {
-            if (!isUsernameAvailable(username)) {
+            // Проверяем, что никнейм содержит только допустимые символы
+            if (!/^[A-Za-z0-9]+$/.test(username)) {
+                showNotification('Никнейм может содержать только английские буквы и цифры', 'error');
+                usernameInput.style.borderColor = '#ff6b6b';
+            } else if (!isUsernameAvailable(username)) {
                 showNotification('Этот никнейм уже занят', 'error');
                 usernameInput.style.borderColor = '#ff6b6b';
             } else {
@@ -97,6 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Валидация
         if (username.length < 3) {
             showNotification('Никнейм должен содержать минимум 3 символа', 'error');
+            return;
+        }
+
+        // Проверка на допустимые символы (только английские буквы и цифры)
+        if (!/^[A-Za-z0-9]+$/.test(username)) {
+            showNotification('Никнейм может содержать только английские буквы и цифры, без пробелов', 'error');
+            usernameInput.style.borderColor = '#ff6b6b';
             return;
         }
 

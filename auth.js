@@ -11,6 +11,11 @@ function registerUser(username, password, confirmPassword, email) {
         return { success: false, message: 'Никнейм должен содержать минимум 3 символа' };
     }
     
+    // Проверка на допустимые символы (только английские буквы и цифры)
+    if (!/^[A-Za-z0-9]+$/.test(username)) {
+        return { success: false, message: 'Никнейм может содержать только английские буквы и цифры, без пробелов' };
+    }
+    
     if (!password || password.length < 6) {
         return { success: false, message: 'Пароль должен содержать минимум 6 символов' };
     }

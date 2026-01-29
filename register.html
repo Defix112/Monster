@@ -21,8 +21,8 @@
             <form id="registerForm" class="auth-form">
                 <div class="form-group">
                     <label>Пользовательский никнейм</label>
-                    <input type="text" id="username" required placeholder="Введите никнейм" minlength="3" autocomplete="username">
-                    <small class="input-hint">Минимум 3 символа, должен быть уникальным</small>
+                    <input type="text" id="username" required placeholder="Введите никнейм" minlength="3" maxlength="20" pattern="[A-Za-z0-9]+" autocomplete="username">
+                    <small class="input-hint">Только английские буквы и цифры, без пробелов. Минимум 3 символа</small>
                 </div>
 
                 <div class="form-group">
