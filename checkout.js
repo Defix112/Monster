@@ -86,31 +86,61 @@ function openTBankApp(customerData) {
             // Вариант 5: Открыть раздел переводов
             const deepLink5 = `tbank://transfer`;
             
-            // Используем прямой способ открытия приложения БЕЗ Intent
-            // Создаем скрытую ссылку и кликаем по ней
-            // Это более надежный способ, который не перенаправляет в Play Market
-            const openApp = (link) => {
-                // Используем window.location.href напрямую - это самый надежный способ
-                // для Android, который не перенаправляет в Play Market
-                window.location.href = link;
+            // Используем прямой способ открытия приложения с запросом разрешения
+            // Создаем видимую ссылку, которую пользователь должен нажать
+            // Это запросит разрешение на открытие приложений
+            const openAppWithPermission = (link) => {
+                // Показываем диалог с запросом разрешения
+                const userConfirmed = confirm('Открыть приложение Т-Банк для перевода?');
+                
+                if (userConfirmed) {
+                    // Используем window.location.href - это запросит разрешение у пользователя
+                    try {
+                        window.location.href = link;
+                        return true;
+                    } catch (e) {
+                        // Альтернативный способ через создание ссылки
+                        const a = document.createElement('a');
+                        a.href = link;
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            if (a.parentNode) {
+                                a.parentNode.removeChild(a);
+                            }
+                        }, 100);
+                        return true;
+                    }
+                }
+                return false;
             };
             
-            // Пробуем открыть приложение через прямой deep link
+            // Пробуем открыть приложение через прямой deep link с запросом разрешения
             // Пробуем варианты, начиная с наиболее специфичного для экрана "По номеру карты"
             let opened = false;
             const variants = [deepLink1, deepLink2, deepLink3, deepLink4, deepLink5];
             
-            for (let i = 0; i < variants.length; i++) {
-                try {
-                    openApp(variants[i]);
-                    opened = true;
-                    // Показываем информацию о переводе через небольшую задержку
-                    setTimeout(() => {
-                        showTransferInfo(customerData);
-                    }, 500);
-                    break;
-                } catch (err) {
-                    continue;
+            // Показываем запрос разрешения и пробуем открыть приложение
+            if (openAppWithPermission(deepLink1)) {
+                opened = true;
+                // Показываем информацию о переводе через небольшую задержку
+                setTimeout(() => {
+                    showTransferInfo(customerData);
+                }, 500);
+            } else {
+                // Если пользователь отменил, пробуем другие варианты без запроса
+                for (let i = 1; i < variants.length; i++) {
+                    try {
+                        window.location.href = variants[i];
+                        opened = true;
+                        setTimeout(() => {
+                            showTransferInfo(customerData);
+                        }, 500);
+                        break;
+                    } catch (err) {
+                        continue;
+                    }
                 }
             }
             
@@ -244,34 +274,39 @@ function tryOpenTBankAgain() {
     
     // Используем ТОЛЬКО прямой deep link БЕЗ Intent
     // Для открытия экрана "По номеру карты" с предзаполненными данными
-    if (isAndroid) {
-        // Для Android пробуем несколько вариантов прямого deep link
-        const variants = [
-            `tbank://transfer/card?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
-            `tbank://transfer/card?card=${cardNumberClean}&sum=${TBANK_CONFIG.amount}`,
-            `tbank://transfer/card?to=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
-            `tbank://transfer?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
-            `tbank://transfer` // Просто открыть раздел переводов
-        ];
-        
-        // Пробуем открыть первый вариант
-        for (let i = 0; i < variants.length; i++) {
-            try {
-                window.location.href = variants[i];
-                break;
-            } catch (e) {
-                if (i === variants.length - 1) {
-                    // Если все варианты не сработали, показываем модальное окно
-                    showCardNumberModal({ username: getCurrentUser()?.username || '' });
+    const deepLink = `tbank://transfer/card?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`;
+    
+    // Запрашиваем разрешение у пользователя
+    const userConfirmed = confirm('Открыть приложение Т-Банк для перевода?');
+    
+    if (userConfirmed) {
+        if (isAndroid) {
+            // Для Android пробуем несколько вариантов прямого deep link
+            const variants = [
+                `tbank://transfer/card?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
+                `tbank://transfer/card?card=${cardNumberClean}&sum=${TBANK_CONFIG.amount}`,
+                `tbank://transfer/card?to=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
+                `tbank://transfer?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`,
+                `tbank://transfer` // Просто открыть раздел переводов
+            ];
+            
+            // Пробуем открыть первый вариант
+            for (let i = 0; i < variants.length; i++) {
+                try {
+                    window.location.href = variants[i];
+                    break;
+                } catch (e) {
+                    if (i === variants.length - 1) {
+                        // Если все варианты не сработали, показываем модальное окно
+                        showCardNumberModal({ username: getCurrentUser()?.username || '' });
+                    }
                 }
             }
+        } else if (isIOS) {
+            window.location.href = deepLink;
+        } else {
+            window.location.href = deepLink;
         }
-    } else if (isIOS) {
-        const deepLink = `tbank://transfer/card?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`;
-        window.location.href = deepLink;
-    } else {
-        const deepLink = `tbank://transfer/card?card=${cardNumberClean}&amount=${TBANK_CONFIG.amount}`;
-        window.location.href = deepLink;
     }
 }
 

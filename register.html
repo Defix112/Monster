@@ -41,6 +41,18 @@
                     <input type="password" id="confirmPassword" required placeholder="Повторите пароль" minlength="6" autocomplete="new-password">
                 </div>
 
+                <div class="form-group">
+                    <label>Проверка на бота</label>
+                    <div class="captcha-container">
+                        <div class="captcha-question" id="captchaQuestion">
+                            <span id="captchaText"></span>
+                        </div>
+                        <input type="number" id="captchaAnswer" required placeholder="Введите ответ" class="captcha-input" autocomplete="off">
+                        <button type="button" class="btn-refresh-captcha" id="refreshCaptcha" title="Обновить">🔄</button>
+                    </div>
+                    <small class="input-hint">Решите пример, чтобы подтвердить, что вы не бот</small>
+                </div>
+
                 <button type="submit" class="btn-auth">
                     Зарегистрироваться
                 </button>

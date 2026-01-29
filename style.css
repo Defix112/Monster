@@ -622,6 +622,60 @@ body {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+/* Капча */
+.captcha-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.captcha-question {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.captcha-input {
+    flex: 1;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+}
+
+.captcha-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-refresh-captcha {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 15px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-refresh-captcha:hover {
+    background: var(--primary-dark);
+    transform: rotate(180deg);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
 .security-info {
     display: flex;
     gap: 15px;
