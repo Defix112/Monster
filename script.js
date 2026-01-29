@@ -4,7 +4,48 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmoothScroll();
     initAuth();
     checkMonsterStatus();
+    initDownload();
 });
+
+// Инициализация функции скачивания
+function initDownload() {
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    const handleDownload = () => {
+        // Проверяем, авторизован ли пользователь
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+            showNotification('Для скачивания необходимо войти в систему', 'error');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
+        
+        // Создаем файл для скачивания
+        // Можно использовать любой контент - текст, изображение и т.д.
+        const fileContent = 'Monster File Content\n\nЭто файл Monster.';
+        const blob = new Blob([fileContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        // Создаем ссылку для скачивания
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'monster.txt'; // Имя файла
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Освобождаем память
+        URL.revokeObjectURL(url);
+        
+        showNotification('Файл успешно скачан!', 'success');
+    };
+    
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', handleDownload);
+    }
+}
 
 // Инициализация авторизации
 function initAuth() {

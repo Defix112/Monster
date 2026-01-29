@@ -130,12 +130,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Проверка капчи
-        const captchaAnswer = document.getElementById('captchaAnswer').value;
+        const captchaAnswerInput = document.getElementById('captchaAnswer');
+        if (!captchaAnswerInput) {
+            showNotification('Ошибка: поле капчи не найдено', 'error');
+            return;
+        }
+        
+        const captchaAnswer = captchaAnswerInput.value.trim();
+        
+        if (!captchaAnswer) {
+            showNotification('Пожалуйста, решите пример для проверки', 'error');
+            captchaAnswerInput.style.borderColor = '#ff6b6b';
+            captchaAnswerInput.focus();
+            return;
+        }
+        
         if (!validateCaptcha(captchaAnswer)) {
             showNotification('Неверный ответ на проверку. Попробуйте еще раз', 'error');
-            const captchaInput = document.getElementById('captchaAnswer');
-            captchaInput.style.borderColor = '#ff6b6b';
-            captchaInput.value = '';
+            captchaAnswerInput.style.borderColor = '#ff6b6b';
+            captchaAnswerInput.value = '';
+            captchaAnswerInput.focus();
             // Генерируем новую капчу
             const captchaText = document.getElementById('captchaText');
             if (captchaText) {
@@ -143,6 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return;
         }
+        
+        // Сбрасываем цвет границы при успешной проверке
+        captchaAnswerInput.style.borderColor = '#51cf66';
 
         // Регистрация
         const result = registerUser(username, password, confirmPassword, email);
