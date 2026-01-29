@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Оплата привилегии Monster">
+    <title>Оплата - Monster</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="checkout-page">
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <a href="index.html" class="back-link">← Назад</a>
+            <h1>Оплата привилегии Monster</h1>
+        </div>
+
+        <div class="checkout-content">
+            <div class="order-summary-card">
+                <h2>Ваш заказ</h2>
+                <div class="order-item-summary">
+                    <div class="order-item-name">
+                        <span class="monster-icon">👹</span>
+                        <span>Привилегия Monster</span>
+                    </div>
+                    <div class="order-item-price">19 ₽</div>
+                </div>
+                <div class="order-total-summary">
+                    <div class="total-label">Итого к оплате:</div>
+                    <div class="total-amount">19 ₽</div>
+                </div>
+            </div>
+
+            <div class="payment-card">
+                <div class="tbank-header">
+                    <div class="tbank-logo">🏦</div>
+                    <h2>Перевод через Т-Банк</h2>
+                </div>
+                <p class="payment-method-info">Оплата производится переводом на карту Т-Банк</p>
+                
+                <div class="transfer-info">
+                    <div class="transfer-details">
+                        <div class="transfer-item">
+                            <span class="transfer-label">Номер карты получателя:</span>
+                            <span class="transfer-value" id="recipientCard">5536 9177 5374 2763</span>
+                        </div>
+                        <div class="transfer-item highlight">
+                            <span class="transfer-label">Сумма перевода:</span>
+                            <span class="transfer-value">19 ₽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="paymentForm" class="payment-form-checkout">
+                    <div class="form-group">
+                        <label>Email (для отправки чека)</label>
+                        <input type="email" id="email" required placeholder="your@email.com" autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="tel" id="phone" required placeholder="+7 (999) 123-45-67" autocomplete="tel">
+                    </div>
+
+                    <div class="security-info">
+                        <div class="security-icon">🔒</div>
+                        <div class="security-text">
+                            <strong>Безопасный перевод</strong>
+                            <p>Перевод осуществляется через официальное приложение Т-Банка</p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-pay-checkout">
+                        <span class="btn-text">Перейти к переводу в Т-Банк</span>
+                        <span class="btn-loader" style="display: none;">⏳</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="payment-methods">
+            <p class="payment-methods-title">Оплата через:</p>
+            <div class="tbank-only">
+                <div class="tbank-badge">
+                    <span class="tbank-logo-large">🏦</span>
+                    <div class="tbank-info">
+                        <strong>Т-Банк</strong>
+                        <span>Перевод на карту Т-Банка</span>
+                    </div>
+                </div>
+            </div>
+            <p class="payment-note">После перевода привилегия будет активирована автоматически</p>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="checkout.js"></script>
+</body>
+</html>

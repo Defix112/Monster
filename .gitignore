@@ -1,0 +1,21 @@
+# Зависимости
+node_modules/
+package-lock.json
+
+# Переменные окружения (содержат секретные ключи!)
+.env
+
+# Логи
+*.log
+npm-debug.log*
+
+# Временные файлы
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+

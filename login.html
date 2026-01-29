@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Monster</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="monster-badge-small">👹</div>
+                <h1>Вход в систему</h1>
+                <p>Войдите в свой аккаунт</p>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label>Пользовательский никнейм</label>
+                    <input type="text" id="username" required placeholder="Введите никнейм" autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" id="password" required placeholder="Введите пароль" autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn-auth">
+                    Войти
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+                <p><a href="index.html">← Назад на главную</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="auth.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>
+
