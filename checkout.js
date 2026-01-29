@@ -21,41 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Заполняем данные получателя
     document.getElementById('recipientCard').textContent = TBANK_CONFIG.cardNumberDisplay;
-    document.getElementById('recipientName').textContent = currentUser.username;
 
-    const form = document.getElementById('paymentForm');
-    const phoneInput = document.getElementById('phone');
-
-    // Форматирование телефона
-    phoneInput.addEventListener('input', (e) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.startsWith('8')) {
-            value = '7' + value.substring(1);
-        }
-        if (value.startsWith('7')) {
-            value = '+7 (' + value.substring(1, 4) + ') ' + value.substring(4, 7) + '-' + value.substring(7, 9) + '-' + value.substring(9, 11);
-        }
-        e.target.value = value;
-    });
-
-    // Отправка формы
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const submitButton = form.querySelector('.btn-pay-checkout');
-        const btnText = submitButton.querySelector('.btn-text');
-        const btnLoader = submitButton.querySelector('.btn-loader');
+    const payButton = document.getElementById('payButton');
+    
+    // Обработчик нажатия на кнопку оплаты
+    payButton.addEventListener('click', () => {
+        const btnText = payButton.querySelector('.btn-text');
+        const btnLoader = payButton.querySelector('.btn-loader');
         
         // Показываем загрузку
         btnText.style.display = 'none';
         btnLoader.style.display = 'inline-block';
-        submitButton.disabled = true;
+        payButton.disabled = true;
 
         // Собираем данные покупателя
         const customerData = {
             username: currentUser.username,
-            email: document.getElementById('email').value,
-            phone: document.getElementById('phone').value,
             amount: TBANK_CONFIG.amount,
             product: 'Monster Privilege'
         };
@@ -63,79 +44,85 @@ document.addEventListener('DOMContentLoaded', () => {
         // Сохраняем данные о платеже
         savePendingPayment(customerData);
 
-        // Создаем ссылку для перевода в Т-Банк
-        // Deep link для мобильного приложения Т-Банк
-        const tbankAppLink = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}&comment=Monster+Privilege+${currentUser.username}`;
-        
-        // Пытаемся открыть приложение Т-Банк
-        openTBankTransfer(tbankAppLink, customerData);
+        // Открываем приложение Т-Банк
+        openTBankApp(customerData);
     });
 });
 
-// Открытие перевода в Т-Банк
-function openTBankTransfer(link, customerData) {
-    // Пытаемся открыть приложение
-    window.location.href = link;
+// Открытие приложения Т-Банк
+function openTBankApp(customerData) {
+    // Определяем, мобильное устройство или нет
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     
-    // Показываем инструкцию
-    setTimeout(() => {
-        showTransferInstructions(customerData);
-    }, 500);
+    if (isMobile) {
+        // Для мобильных устройств используем deep link
+        // Пробуем несколько вариантов deep link для Т-Банка
+        let deepLink = '';
+        
+        if (isIOS) {
+            // Для iOS используем универсальную ссылку или deep link
+            deepLink = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}`;
+        } else if (isAndroid) {
+            // Для Android используем intent или deep link
+            deepLink = `intent://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}#Intent;scheme=tbank;package=ru.tbank.mobile;end`;
+        } else {
+            deepLink = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}`;
+        }
+        
+        // Пытаемся открыть приложение
+        try {
+            // Создаем скрытую ссылку для открытия приложения
+            const link = document.createElement('a');
+            link.href = deepLink;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Показываем информацию о переводе через небольшую задержку
+            setTimeout(() => {
+                showTransferInfo(customerData);
+            }, 500);
+        } catch (e) {
+            // Если не удалось открыть, показываем номер карты
+            showCardNumberModal(customerData);
+        }
+    } else {
+        // Для десктопа показываем номер карты
+        showCardNumberModal(customerData);
+    }
 }
 
-// Показ инструкции по переводу
-function showTransferInstructions(customerData) {
-    const instructions = `
+// Показ модального окна с номером карты
+function showCardNumberModal(customerData) {
+    const modal = `
         <div class="transfer-modal" id="transferModal">
             <div class="transfer-modal-content">
                 <h2>Перевод в Т-Банк</h2>
-                <div class="transfer-steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <div class="step-text">
-                            <strong>Откройте приложение Т-Банк</strong>
-                            <p>Если приложение не открылось автоматически, откройте его вручную</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <div class="step-text">
-                            <strong>Перейдите в "Переводы"</strong>
-                            <p>Найдите раздел "Перевести" или "Переводы"</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <div class="step-text">
-                            <strong>Введите данные</strong>
-                            <div class="transfer-details-box">
-                                <p><strong>Номер карты:</strong> ${TBANK_CONFIG.cardNumberDisplay}</p>
-                                <p><strong>Сумма:</strong> ${TBANK_CONFIG.amount} ₽</p>
-                                <p><strong>Комментарий:</strong> Monster Privilege ${customerData.username}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <div class="step-text">
-                            <strong>Нажмите "Отправить"</strong>
-                            <p>Подтвердите перевод</p>
-                        </div>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">5</div>
-                        <div class="step-text">
-                            <strong>Вернитесь на сайт</strong>
-                            <p>После перевода вернитесь и подтвердите оплату</p>
-                        </div>
-                    </div>
+                <div class="card-number-display">
+                    <div class="card-number-label">Номер карты для перевода:</div>
+                    <div class="card-number-value" id="cardNumberDisplay">${TBANK_CONFIG.cardNumberDisplay}</div>
+                    <button onclick="copyCardNumber()" class="btn-copy-card-modal">📋 Скопировать номер</button>
+                </div>
+                <div class="amount-display">
+                    <div class="amount-label">Сумма:</div>
+                    <div class="amount-value">${TBANK_CONFIG.amount} ₽</div>
+                </div>
+                <div class="transfer-instructions">
+                    <p><strong>Инструкция:</strong></p>
+                    <ol>
+                        <li>Откройте приложение Т-Банк на телефоне</li>
+                        <li>Перейдите в раздел "Переводы"</li>
+                        <li>Введите номер карты: <strong>${TBANK_CONFIG.cardNumberDisplay}</strong></li>
+                        <li>Введите сумму: <strong>${TBANK_CONFIG.amount} ₽</strong></li>
+                        <li>Выполните перевод</li>
+                    </ol>
                 </div>
                 <div class="transfer-actions">
-                    <button onclick="openTBankAppAgain()" class="btn-open-app">
-                        Открыть Т-Банк снова
-                    </button>
-                    <button onclick="copyTransferData()" class="btn-copy-data">
-                        Скопировать данные
+                    <button onclick="tryOpenTBankAgain()" class="btn-open-app">
+                        Открыть Т-Банк
                     </button>
                     <button onclick="confirmPayment()" class="btn-confirm-payment">
                         Я перевел деньги
@@ -147,10 +134,92 @@ function showTransferInstructions(customerData) {
             </div>
         </div>
     `;
-
-    // Добавляем модальное окно
-    document.body.insertAdjacentHTML('beforeend', instructions);
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
     addTransferModalStyles();
+}
+
+// Показ информации о переводе (когда приложение открылось)
+function showTransferInfo(customerData) {
+    const info = `
+        <div class="transfer-info-modal" id="transferInfoModal">
+            <div class="transfer-info-content">
+                <h2>Перевод в Т-Банк</h2>
+                <div class="transfer-details-box">
+                    <p><strong>Номер карты:</strong> ${TBANK_CONFIG.cardNumberDisplay}</p>
+                    <p><strong>Сумма:</strong> ${TBANK_CONFIG.amount} ₽</p>
+                    <p><strong>Комментарий:</strong> Monster Privilege ${customerData.username}</p>
+                </div>
+                <p class="transfer-note">Выполните перевод в приложении Т-Банк, затем вернитесь и подтвердите оплату.</p>
+                <div class="transfer-actions">
+                    <button onclick="tryOpenTBankAgain()" class="btn-open-app">
+                        Открыть Т-Банк снова
+                    </button>
+                    <button onclick="confirmPayment()" class="btn-confirm-payment">
+                        Я перевел деньги
+                    </button>
+                    <button onclick="closeTransferInfoModal()" class="btn-close-modal">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', info);
+    addTransferModalStyles();
+}
+
+// Копирование номера карты
+function copyCardNumber() {
+    const cardNumber = TBANK_CONFIG.cardNumber.replace(/\s/g, '');
+    navigator.clipboard.writeText(cardNumber).then(() => {
+        showNotification('Номер карты скопирован!', 'success');
+    }).catch(() => {
+        // Fallback для старых браузеров
+        const textArea = document.createElement('textarea');
+        textArea.value = cardNumber;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Номер карты скопирован!', 'success');
+    });
+}
+
+// Попытка открыть Т-Банк снова
+function tryOpenTBankAgain() {
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    
+    let deepLink = '';
+    if (isIOS) {
+        deepLink = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}`;
+    } else if (isAndroid) {
+        deepLink = `intent://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}#Intent;scheme=tbank;package=ru.tbank.mobile;end`;
+    } else {
+        deepLink = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}`;
+    }
+    
+    try {
+        const link = document.createElement('a');
+        link.href = deepLink;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        // Fallback на window.location
+        window.location.href = deepLink;
+    }
+}
+
+// Закрытие модального окна с информацией
+function closeTransferInfoModal() {
+    const modal = document.getElementById('transferInfoModal');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 // Добавление стилей для модального окна
@@ -172,7 +241,7 @@ function addTransferModalStyles() {
                 z-index: 10000;
                 animation: fadeIn 0.3s;
             }
-            .transfer-modal-content {
+            .transfer-modal-content, .transfer-info-content {
                 background: white;
                 border-radius: 20px;
                 padding: 30px;
@@ -180,6 +249,102 @@ function addTransferModalStyles() {
                 width: 90%;
                 max-height: 90vh;
                 overflow-y: auto;
+            }
+            .transfer-info-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s;
+            }
+            .card-number-display {
+                text-align: center;
+                margin: 20px 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 15px;
+                color: white;
+            }
+            .card-number-label {
+                font-size: 14px;
+                opacity: 0.9;
+                margin-bottom: 10px;
+            }
+            .card-number-value {
+                font-size: 24px;
+                font-weight: bold;
+                letter-spacing: 2px;
+                margin: 10px 0;
+            }
+            .btn-copy-card-modal {
+                margin-top: 10px;
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid white;
+                border-radius: 10px;
+                color: white;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            .btn-copy-card-modal:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+            .amount-display {
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: #f5f5f5;
+                border-radius: 10px;
+            }
+            .amount-label {
+                font-size: 14px;
+                color: #666;
+                margin-bottom: 5px;
+            }
+            .amount-value {
+                font-size: 32px;
+                font-weight: bold;
+                color: #333;
+            }
+            .transfer-instructions {
+                margin: 20px 0;
+                padding: 15px;
+                background: #f9f9f9;
+                border-radius: 10px;
+            }
+            .transfer-instructions ol {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            .transfer-instructions li {
+                margin: 8px 0;
+                color: #555;
+            }
+            .transfer-note {
+                margin: 15px 0;
+                padding: 15px;
+                background: #e3f2fd;
+                border-radius: 10px;
+                color: #1976d2;
+            }
+            .btn-copy-card {
+                background: transparent;
+                border: none;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 5px 10px;
+                margin-left: 10px;
+                transition: transform 0.2s;
+            }
+            .btn-copy-card:hover {
+                transform: scale(1.2);
             }
             .transfer-steps {
                 margin: 20px 0;
@@ -258,25 +423,7 @@ function addTransferModalStyles() {
     }
 }
 
-// Открытие приложения Т-Банк снова
-function openTBankAppAgain() {
-    const link = `tbank://transfer?card=${TBANK_CONFIG.cardNumber}&amount=${TBANK_CONFIG.amount}`;
-    window.location.href = link;
-}
 
-// Копирование данных для перевода
-function copyTransferData() {
-    const data = `Перевод в Т-Банк:
-Номер карты: ${TBANK_CONFIG.cardNumberDisplay}
-Сумма: ${TBANK_CONFIG.amount} ₽
-Комментарий: Monster Privilege`;
-    
-    navigator.clipboard.writeText(data).then(() => {
-        showNotification('Данные скопированы! Вставьте их в приложение Т-Банк', 'success');
-    }).catch(() => {
-        showNotification('Не удалось скопировать. Скопируйте вручную', 'error');
-    });
-}
 
 // Подтверждение оплаты
 function confirmPayment() {

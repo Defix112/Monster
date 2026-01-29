@@ -58,6 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Проверка уникальности никнейма перед регистрацией
+        if (!isUsernameAvailable(username)) {
+            showNotification('Этот никнейм уже занят. Выберите другой никнейм', 'error');
+            usernameInput.style.borderColor = '#ff6b6b';
+            return;
+        }
+
+        // Проверка уникальности email
+        if (!isEmailAvailable(email)) {
+            showNotification('Этот email уже используется', 'error');
+            emailInput.style.borderColor = '#ff6b6b';
+            return;
+        }
+
         // Регистрация
         const result = registerUser(username, password, confirmPassword, email);
 

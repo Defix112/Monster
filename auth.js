@@ -2,6 +2,10 @@
 
 // Регистрация нового пользователя
 function registerUser(username, password, confirmPassword, email) {
+    // Нормализация входных данных
+    username = (username || '').trim();
+    email = (email || '').trim();
+    
     // Валидация
     if (!username || username.length < 3) {
         return { success: false, message: 'Никнейм должен содержать минимум 3 символа' };
@@ -19,22 +23,34 @@ function registerUser(username, password, confirmPassword, email) {
         return { success: false, message: 'Введите корректный email' };
     }
     
-    // Проверка уникальности никнейма
+    // Проверка уникальности никнейма (регистронезависимая)
     const users = getUsers();
-    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-        return { success: false, message: 'Этот никнейм уже занят' };
+    const usernameLower = username.trim().toLowerCase();
+    const existingUser = users.find(u => {
+        const existingUsernameLower = (u.username || '').trim().toLowerCase();
+        return existingUsernameLower === usernameLower;
+    });
+    
+    if (existingUser) {
+        return { success: false, message: 'Этот никнейм уже занят. Выберите другой никнейм' };
     }
     
-    // Проверка уникальности email
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+    // Проверка уникальности email (регистронезависимая)
+    const emailLower = email.trim().toLowerCase();
+    const existingEmail = users.find(u => {
+        const existingEmailLower = (u.email || '').trim().toLowerCase();
+        return existingEmailLower === emailLower;
+    });
+    
+    if (existingEmail) {
         return { success: false, message: 'Этот email уже используется' };
     }
     
     // Создание нового пользователя
     const newUser = {
-        username: username,
+        username: username, // Уже обрезан выше
         password: hashPassword(password), // Хешируем пароль
-        email: email,
+        email: email.toLowerCase(), // Нормализуем email (уже обрезан выше)
         hasMonster: false,
         registeredAt: new Date().toISOString()
     };
@@ -133,13 +149,27 @@ function hashPassword(password) {
 
 // Проверка уникальности никнейма
 function isUsernameAvailable(username) {
+    if (!username || username.trim().length < 3) {
+        return false;
+    }
     const users = getUsers();
-    return !users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    const usernameLower = username.trim().toLowerCase();
+    return !users.find(u => {
+        const existingUsernameLower = (u.username || '').trim().toLowerCase();
+        return existingUsernameLower === usernameLower;
+    });
 }
 
 // Проверка уникальности email
 function isEmailAvailable(email) {
+    if (!email || !email.includes('@')) {
+        return false;
+    }
     const users = getUsers();
-    return !users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const emailLower = email.trim().toLowerCase();
+    return !users.find(u => {
+        const existingEmailLower = (u.email || '').trim().toLowerCase();
+        return existingEmailLower === emailLower;
+    });
 }
 
